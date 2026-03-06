@@ -14,7 +14,7 @@ const ListSchema = z.object({
 
 const CreateSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title must be 255 characters or fewer'),
-  description: z.string().optional(),
+  description: z.string().max(1000).optional().nullable(),
   priority: z.enum([TODO_PRIORITY.LOW, TODO_PRIORITY.MEDIUM, TODO_PRIORITY.HIGH]).optional(),
   due_date: z
     .string()
@@ -29,7 +29,7 @@ const UpdateSchema = z
       .min(1, 'Title is required')
       .max(255, 'Title must be 255 characters or fewer')
       .optional(),
-    description: z.string().nullable().optional(),
+    description: z.string().max(1000).nullable().optional(),
     priority: z.enum([TODO_PRIORITY.LOW, TODO_PRIORITY.MEDIUM, TODO_PRIORITY.HIGH]).optional(),
     due_date: z
       .string()

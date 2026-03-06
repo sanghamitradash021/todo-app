@@ -34,6 +34,6 @@ export const TodoController = {
 
   delete: asyncHandler(async (req: Request, res: Response): Promise<void> => {
     await TodoService.deleteTodo(req.params.id, req.user!.id);
-    res.status(200).json({ data: null, message: 'Todo deleted successfully' });
+    res.status(204).end();
   }),
 };
