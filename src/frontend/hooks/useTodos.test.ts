@@ -127,6 +127,14 @@ describe('useTodos.toggleTodo', () => {
     });
   });
 
+  it('shows success toast after API resolves', async () => {
+    useTodoStore.setState({ todos: [baseTodo] });
+    mockPatch.mockResolvedValueOnce({ data: { data: { ...baseTodo, status: 'completed' } } });
+    const { result } = renderHook(() => useTodos());
+    await act(() => result.current.toggleTodo('todo-1'));
+    expect(useUiStore.getState().toasts[0]).toMatchObject({ type: 'success', message: 'Todo updated' });
+  });
+
   it('reverts status to original on API error', async () => {
     useTodoStore.setState({ todos: [baseTodo] });
     mockPatch.mockRejectedValueOnce(new Error('fail'));

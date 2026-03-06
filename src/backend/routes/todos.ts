@@ -19,6 +19,7 @@ const CreateSchema = z.object({
   due_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'due_date must be in YYYY-MM-DD format')
+    .nullable()
     .optional(),
 });
 

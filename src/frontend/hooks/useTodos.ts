@@ -79,6 +79,7 @@ export function useTodos() {
     try {
       const { data } = await api.patch<ApiSuccess<Todo>>(`/todos/${id}/toggle`);
       updateTodo(data.data);
+      addToast('success', 'Todo updated');
     } catch (err) {
       // Revert on error
       updateTodo(original);
