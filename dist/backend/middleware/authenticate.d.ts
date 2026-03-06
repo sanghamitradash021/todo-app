@@ -1,0 +1,2 @@
+export declare const authenticate: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
+//# sourceMappingURL=authenticate.d.ts.map
