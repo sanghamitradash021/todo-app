@@ -1,25 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useTodos } from '../hooks/useTodos';
-import { useAuth } from '../hooks/useAuth';
-import { useAuthStore } from '../store/authStore';
 import { FilterBar } from '../components/FilterBar';
-import { TodoList } from '../components/TodoList';
+import { AnimatedTodoList } from '../components/todos/AnimatedTodoList';
 import { TodoModal } from '../components/TodoModal';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
 import { ToastContainer } from '../components/ToastContainer';
-import { Spinner } from '../components/Spinner';
 import type { Todo } from '../types';
 import type { TodoFilters } from '../store/todoStore';
 
 function TodosPage() {
   const { todos, isLoading, filters, fetchTodos, createTodo, updateTodo, toggleTodo, deleteTodo, setFilters } =
     useTodos();
-  const { logout } = useAuth();
-  const user = useAuthStore((state) => state.user);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [deletingTodo, setDeletingTodo] = useState<Todo | null>(null);
+
+  // Track initial load: show skeletons only on first fetch, not on filter changes — AC-D09.3
+  const prevIsLoadingRef = useRef<boolean | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  useEffect(() => {
+    if (prevIsLoadingRef.current === true && !isLoading && !hasLoaded) {
+      setHasLoaded(true);
+    }
+    prevIsLoadingRef.current = isLoading;
+  }, [isLoading, hasLoaded]);
+  const isInitialLoad = isLoading && !hasLoaded;
 
   useEffect(() => {
     void fetchTodos();
@@ -49,69 +56,64 @@ function TodosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Todos</h1>
-            {user && <p className="text-sm text-gray-500 mt-0.5">{user.email}</p>}
-          </div>
-          <button
-            onClick={logout}
-            className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-          >
-            Logout
-          </button>
-        </div>
+    <div className="max-w-3xl mx-auto">
+      {/* Heading — hidden on mobile (DashboardLayout top bar shows it instead) */}
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 hidden md:block">My Todos</h1>
 
-        {/* Controls */}
-        <div className="flex items-center justify-between mb-4 gap-4">
-          <FilterBar filters={filters} onChange={handleFilterChange} />
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 text-white py-2 px-4 rounded text-sm font-medium hover:bg-blue-700 shrink-0"
-          >
-            + Add Todo
-          </button>
-        </div>
-
-        {/* List */}
-        {isLoading ? (
-          <Spinner />
-        ) : (
-          <TodoList
-            todos={todos}
-            onToggle={toggleTodo}
-            onEdit={(todo) => setEditingTodo(todo)}
-            onDelete={(todo) => setDeletingTodo(todo)}
-          />
-        )}
+      {/* Controls */}
+      <div className="flex items-center justify-between mb-4 gap-4">
+        <FilterBar filters={filters} onChange={handleFilterChange} />
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-blue-600 text-white py-2 px-4 rounded text-sm font-medium hover:bg-blue-700 shrink-0"
+        >
+          + Add Todo
+        </button>
       </div>
 
+      {/* Animated todo list — replaces TodoList + Spinner */}
+      <AnimatedTodoList
+        todos={todos}
+        isInitialLoad={isInitialLoad}
+        filters={filters}
+        onToggle={toggleTodo}
+        onEdit={(todo) => setEditingTodo(todo)}
+        onDelete={(todo) => setDeletingTodo(todo)}
+        onAddTodo={() => setShowAddModal(true)}
+      />
+
       {/* Modals */}
-      {showAddModal && (
-        <TodoModal
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleCreate}
-        />
-      )}
+      <AnimatePresence>
+        {showAddModal && (
+          <TodoModal
+            key="add-modal"
+            onClose={() => setShowAddModal(false)}
+            onSubmit={handleCreate}
+          />
+        )}
+      </AnimatePresence>
 
-      {editingTodo && (
-        <TodoModal
-          todo={editingTodo}
-          onClose={() => setEditingTodo(null)}
-          onSubmit={handleUpdate}
-        />
-      )}
+      <AnimatePresence>
+        {editingTodo && (
+          <TodoModal
+            key={`edit-modal-${editingTodo.id}`}
+            todo={editingTodo}
+            onClose={() => setEditingTodo(null)}
+            onSubmit={handleUpdate}
+          />
+        )}
+      </AnimatePresence>
 
-      {deletingTodo && (
-        <DeleteConfirmModal
-          todo={deletingTodo}
-          onConfirm={handleDelete}
-          onCancel={() => setDeletingTodo(null)}
-        />
-      )}
+      <AnimatePresence>
+        {deletingTodo && (
+          <DeleteConfirmModal
+            key={`delete-modal-${deletingTodo.id}`}
+            todo={deletingTodo}
+            onConfirm={handleDelete}
+            onCancel={() => setDeletingTodo(null)}
+          />
+        )}
+      </AnimatePresence>
 
       <ToastContainer />
     </div>

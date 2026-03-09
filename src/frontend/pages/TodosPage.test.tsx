@@ -10,15 +10,9 @@ vi.mock('../hooks/useTodos', () => ({
   useTodos: vi.fn(),
 }));
 
-vi.mock('../hooks/useAuth', () => ({
-  useAuth: vi.fn(),
-}));
-
 import { useTodos } from '../hooks/useTodos';
-import { useAuth } from '../hooks/useAuth';
 
 const mockUseTodos = useTodos as ReturnType<typeof vi.fn>;
-const mockUseAuth = useAuth as ReturnType<typeof vi.fn>;
 
 const baseTodo: Todo = {
   id: 'todo-1',
@@ -44,20 +38,11 @@ const defaultTodosHook = {
   setFilters: vi.fn(),
 };
 
-const defaultAuthHook = {
-  logout: vi.fn(),
-  login: vi.fn(),
-  register: vi.fn(),
-  isLoading: false,
-  error: null,
-};
-
 beforeEach(() => {
   vi.clearAllMocks();
   useTodoStore.setState({ todos: [], filters: { status: 'all', priority: '' }, isLoading: false });
   useUiStore.setState({ toasts: [] });
   mockUseTodos.mockReturnValue(defaultTodosHook);
-  mockUseAuth.mockReturnValue(defaultAuthHook);
 });
 
 function renderPage() {
@@ -74,10 +59,10 @@ describe('TodosPage', () => {
     expect(screen.getByText('My Todos')).toBeTruthy();
   });
 
-  it('renders spinner when isLoading is true', () => {
+  it('shows skeleton cards on initial load (isLoading true, never loaded before)', () => {
     mockUseTodos.mockReturnValue({ ...defaultTodosHook, isLoading: true });
     renderPage();
-    expect(screen.getByLabelText('Loading')).toBeTruthy();
+    expect(screen.getByLabelText('Loading todos')).toBeTruthy();
   });
 
   it('renders todo list when todos are present', () => {
@@ -88,21 +73,14 @@ describe('TodosPage', () => {
 
   it('shows empty state when todos array is empty', () => {
     renderPage();
-    expect(screen.getByText(/no todos found/i)).toBeTruthy();
+    expect(screen.getByText(/no todos yet/i)).toBeTruthy();
   });
 
   it('"Add Todo" button opens modal', async () => {
     renderPage();
-    fireEvent.click(screen.getByText('+ Add Todo'));
+    // Two "+ Add Todo" buttons exist: header bar + EmptyState — click the header one
+    fireEvent.click(screen.getAllByText('+ Add Todo')[0]);
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Add Todo' })).toBeTruthy());
-  });
-
-  it('logout button calls logout()', () => {
-    const logout = vi.fn();
-    mockUseAuth.mockReturnValue({ ...defaultAuthHook, logout });
-    renderPage();
-    fireEvent.click(screen.getByText('Logout'));
-    expect(logout).toHaveBeenCalled();
   });
 
   it('filter change calls setFilters', () => {
