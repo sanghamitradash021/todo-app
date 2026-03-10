@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+import { SPRING_DEFAULT } from '../config/animations';
 import type { Toast as ToastType } from '../store/uiStore';
 
 interface ToastProps {
@@ -9,9 +11,14 @@ export function Toast({ toast, onDismiss }: ToastProps) {
   const colorClass = toast.type === 'success' ? 'bg-green-600' : 'bg-red-600';
 
   return (
-    <div
+    <motion.div
+      layout
       role="alert"
       className={`flex items-center justify-between gap-3 px-4 py-3 rounded shadow text-white text-sm ${colorClass}`}
+      initial={{ opacity: 0, x: 60 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 60 }}
+      transition={SPRING_DEFAULT}
     >
       <span>{toast.message}</span>
       <button
@@ -21,6 +28,6 @@ export function Toast({ toast, onDismiss }: ToastProps) {
       >
         ×
       </button>
-    </div>
+    </motion.div>
   );
 }

@@ -25,10 +25,14 @@ function errorHandler(err, _req, res, _next) {
         return;
     }
     if (err instanceof zod_1.ZodError) {
-        const fields = err.errors.map((e) => e.path.join('.'));
+        // Filter empty strings: root-level .refine() errors have path [] which joins to ''
+        const fields = err.errors
+            .map((e) => e.path.join('.'))
+            .filter((f) => f.length > 0);
+        const message = err.errors[0]?.message ?? 'Validation failed';
         res.status(422).json({
             error: constants_1.ERROR_CODES.VALIDATION_ERROR,
-            message: 'Validation failed',
+            message,
             fields,
         });
         return;

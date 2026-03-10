@@ -1,4 +1,6 @@
 import { useState, FormEvent } from 'react';
+import { motion } from 'framer-motion';
+import { SPRING_DEFAULT, FADE_NORMAL } from '../config/animations';
 import type { Todo } from '../types';
 import type { CreateTodoData, UpdateTodoData } from '../hooks/useTodos';
 
@@ -42,18 +44,28 @@ export function TodoModal({ todo, onClose, onSubmit }: TodoModalProps) {
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
+    if (e.target === e.currentTarget && !isSubmitting) onClose();
   };
 
   const inputClass =
     'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={FADE_NORMAL}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+      <motion.div
+        className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6"
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={SPRING_DEFAULT}
+      >
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {isEdit ? 'Edit Todo' : 'Add Todo'}
         </h2>
@@ -137,7 +149,7 @@ export function TodoModal({ todo, onClose, onSubmit }: TodoModalProps) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
